@@ -1,1 +1,10 @@
 node_modules
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
+*.userprefs
+*.vscode/
+*.sln
+*.csproj
