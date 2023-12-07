@@ -6,8 +6,9 @@ public class Card
     public int Id { get; set; }
     public int[] WinNumbers { get; set; }
     public int[] MyNumbers { get; set; }
-    public int Multiply { get; set; } = 1;
-    public bool IsWinner { get; set; } = false;
+    public int CardCount { get; set; } = 1;
+    public bool IsWinner { get; set; }
+    public int WinnerCount { get; set; }
 
     public Card()
     {
@@ -21,7 +22,9 @@ public class Card
         Id = id;
         WinNumbers = winNumbers;
         MyNumbers = myNumbers;
-        IsWinner = WinNumbers.Intersect(MyNumbers).ToArray().Length > 0;
+        WinnerCount = WinNumbers.Intersect(MyNumbers).ToArray().Length;
+        IsWinner = WinnerCount > 0;
+
     }
 
     public int GetCardPoints(){
@@ -30,7 +33,7 @@ public class Card
         var winnerNumbers = WinNumbers.Intersect(MyNumbers).ToArray().Length;
             if (winnerNumbers > 0)
             {
-                sumPoints += (int)Math.Pow(2, winnerNumbers -1);
+                sumPoints = (int)Math.Pow(2, winnerNumbers -1);
             }
 
         return sumPoints;
@@ -54,8 +57,9 @@ public class Program
         string[] cardsArray = cardsString.Split(Environment.NewLine);
         string[] fileArray = File.ReadAllLines(@"./input.txt");
 
-        List<Card> cardObjects = CreateCards(cardsArray);
+        List<Card> cardObjects = CreateCards(fileArray);
         cardObjects = CardIncrement(cardObjects);
+        Console.WriteLine(SumCards(cardObjects));
         Console.WriteLine(GetCardCount(cardObjects));
     }
 
@@ -107,17 +111,17 @@ public class Program
     public static List<Card> CardIncrement(List<Card> cardsObjects)
     {
         var cards = cardsObjects;
-        int cardCount = cards.Count;
+        int allCard = cards.Count;
 
-        for (int i = 0; i < cardCount; i++)
+        for (int i = 0; i < allCard; i++)
         {
             if (cards[i].IsWinner)
             {
-                for (int j = 0; j < cards[i].GetCardPoints(); j++)
+                for (int j = 0; j < cards[i].WinnerCount; j++)
                 {
                     try {
                         Card currentCard = cards[i+j+1];
-                        currentCard.Multiply += 1;
+                        currentCard.CardCount += cards[i].CardCount;
                     }
                     catch {
                         continue;
@@ -136,8 +140,7 @@ public class Program
 
         for (int i = 0; i < cards.Count; i++)
         {
-            // cardCounter += cards[i].Multiply;
-            Console.WriteLine($"Id: {cards[i].Id} Count: {cards[i].Multiply}");
+            cardCounter += cards[i].CardCount;
         }
 
         return cardCounter;
