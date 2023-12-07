@@ -6,5 +6,3 @@ node_modules
 *.pdb
 *.userprefs
 *.vscode/
-*.sln
-*.csproj
