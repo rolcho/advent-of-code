@@ -1,10 +1,14 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 public class Card
 {
     public int Id { get; set; }
     public int[] WinNumbers { get; set; }
     public int[] MyNumbers { get; set; }
+    public int Multiply { get; set; } = 1;
+    public bool IsWinner { get; set; } = false;
+
     public Card()
     {
         Id = 0;
@@ -17,6 +21,19 @@ public class Card
         Id = id;
         WinNumbers = winNumbers;
         MyNumbers = myNumbers;
+        IsWinner = WinNumbers.Intersect(MyNumbers).ToArray().Length > 0;
+    }
+
+    public int GetCardPoints(){
+        int sumPoints = 0;
+
+        var winnerNumbers = WinNumbers.Intersect(MyNumbers).ToArray().Length;
+            if (winnerNumbers > 0)
+            {
+                sumPoints += (int)Math.Pow(2, winnerNumbers -1);
+            }
+
+        return sumPoints;
     }
 }
 
@@ -37,12 +54,18 @@ public class Program
         string[] cardsArray = cardsString.Split(Environment.NewLine);
         string[] fileArray = File.ReadAllLines(@"./input.txt");
 
+        List<Card> cardObjects = CreateCards(cardsArray);
+        cardObjects = CardIncrement(cardObjects);
+        Console.WriteLine(GetCardCount(cardObjects));
+    }
+
+    public static List<Card> CreateCards(string[] cardArray) 
+    {
         var cardObjects = new List<Card>();
 
-        var sumPoints = 0;
-
-        foreach (string card in fileArray)
+        for (int i = 0; i < cardArray.Length; i++)
         {
+            string card = cardArray[i];
             string[] cardContent = card.Replace("Card ", "").Split(":");
 
             if (cardContent.Length != 2)
@@ -64,14 +87,59 @@ public class Program
 
             cardObjects.Add(new Card(cardId, winNumbers, myNumbers));
 
-            var winnerNumbers = winNumbers.Intersect(myNumbers).ToArray().Length;
-            if (winnerNumbers > 0)
+        }
+
+        return cardObjects;
+
+    }
+
+    public static int SumCards(List<Card> cards) 
+    {
+        int sum = 0;
+
+        foreach (Card card in cards) {
+            sum += card.GetCardPoints();
+        }
+
+        return sum;
+    }
+
+    public static List<Card> CardIncrement(List<Card> cardsObjects)
+    {
+        var cards = cardsObjects;
+        int cardCount = cards.Count;
+
+        for (int i = 0; i < cardCount; i++)
+        {
+            if (cards[i].IsWinner)
             {
-                sumPoints += (int)Math.Pow(2, winnerNumbers -1);
+                for (int j = 0; j < cards[i].GetCardPoints(); j++)
+                {
+                    try {
+                        Card currentCard = cards[i+j+1];
+                        currentCard.Multiply += 1;
+                    }
+                    catch {
+                        continue;
+                    }
+                }
             }
         }
 
-        Console.WriteLine(sumPoints);
+        return cards;
 
+    }
+
+    public static int GetCardCount(List<Card> cards) 
+    {
+        int cardCounter = 0;
+
+        for (int i = 0; i < cards.Count; i++)
+        {
+            // cardCounter += cards[i].Multiply;
+            Console.WriteLine($"Id: {cards[i].Id} Count: {cards[i].Multiply}");
+        }
+
+        return cardCounter;
     }
 }
