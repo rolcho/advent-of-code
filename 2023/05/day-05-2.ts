@@ -36,22 +36,14 @@ type ItemMapping = {
   [key in Items]: Mapping[];
 };
 
-type Composition = {
-  seed: number;
-  soil: number;
-  fertilizer: number;
-  water: number;
-  light: number;
-  temperature: number;
-  humidity: number;
-  location: number;
+type ResultTable = {
+  [key: number]: number;
 };
 
-const compositions: Composition[] = [];
+const resultTable: ResultTable = [];
 const input = fs.readFileSync("input.txt", "utf8");
 const sections = input.split("\n\n");
 const seeds = sections[0].replace("seeds: ", "").split(" ").map(Number);
-const seedArray: number[] = [];
 
 let lowestLocation = Number.MAX_SAFE_INTEGER;
 
@@ -64,11 +56,14 @@ const itemMappings: ItemMapping = {
   temperature: createConversionMap("temperature", "humidity", sections[6]),
   humidity: createConversionMap("humidity", "location", sections[7]),
   location: [],
-};
+} as const;
+
+const start = new Date().getTime();
 
 for (let i = 0; i < seeds.length; i += 2) {
   for (let j = 0; j < seeds[i + 1]; j++) {
     const seed = seeds[i] + j;
+    if (resultTable[seed] !== undefined) continue;
     const soil = linkItem(seed, itemMappings.seed);
     const fertilizer = linkItem(soil, itemMappings.soil);
     const water = linkItem(fertilizer, itemMappings.fertilizer);
@@ -76,12 +71,19 @@ for (let i = 0; i < seeds.length; i += 2) {
     const temperature = linkItem(light, itemMappings.light);
     const humidity = linkItem(temperature, itemMappings.temperature);
     const location = linkItem(humidity, itemMappings.humidity);
+
+    resultTable[seed] = location;
     lowestLocation = Math.min(lowestLocation, location);
   }
-  console.log({ lowLoc: lowestLocation });
 }
+const end = new Date().getTime();
 
-console.log({ lowestLocation });
+const minutes = Math.floor((end - start) / 60000);
+const seconds = Math.floor((end - start) / 1000) % 60;
+const milliseconds = (end - start) % 1000;
+console.log(
+  `Lowest location: ${lowestLocation} in ${minutes}m ${seconds}s ${milliseconds}ms`
+);
 
 function createConversionMap(
   from: Items,
@@ -91,9 +93,9 @@ function createConversionMap(
   const mapText = rawText.replace(`${from}-to-${link} map:\n`, "").split("\n");
 
   const conversionMap: Mapping[] = [];
-  for (const line of mapText) {
-    if (line === "") continue;
-    const values = line.split(" ").map(Number);
+  for (let i = 0; i < mapText.length; i++) {
+    if (mapText[i] === "") continue;
+    const values = mapText[i].split(" ").map(Number);
     conversionMap.push({
       from: values[1],
       to: values[1] + values[2] - 1,
@@ -104,9 +106,9 @@ function createConversionMap(
 }
 
 function linkItem(itemId: number, map: Mapping[]): number {
-  for (const item of map) {
-    if (itemId >= item.from && itemId <= item.to) {
-      return itemId + item.difference;
+  for (let i = 0; i < map.length; i++) {
+    if (itemId >= map[i].from && itemId <= map[i].to) {
+      return itemId + map[i].difference;
     }
   }
   return itemId;
