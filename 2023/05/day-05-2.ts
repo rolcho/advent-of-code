@@ -1,5 +1,5 @@
 /*
-Föld->mag reláció 
+Föld->mag reláció
 50 föld 98 mag 2 variáció (50-98, 51-98)
 52 föld 50 mag 48 variáció (52-50...99-97)
 Ha nincs a relációban, akkor 1-1, 2-2, 3-3...
@@ -36,11 +36,6 @@ type ItemMapping = {
   [key in Items]: Mapping[];
 };
 
-type ResultTable = {
-  [key: number]: number;
-};
-
-const resultTable: ResultTable = [];
 const input = fs.readFileSync("input.txt", "utf8");
 const sections = input.split("\n\n");
 const seeds = sections[0].replace("seeds: ", "").split(" ").map(Number);
@@ -63,7 +58,6 @@ const start = new Date().getTime();
 for (let i = 0; i < seeds.length; i += 2) {
   for (let j = 0; j < seeds[i + 1]; j++) {
     const seed = seeds[i] + j;
-    if (resultTable[seed] !== undefined) continue;
     const soil = linkItem(seed, itemMappings.seed);
     const fertilizer = linkItem(soil, itemMappings.soil);
     const water = linkItem(fertilizer, itemMappings.fertilizer);
@@ -72,7 +66,6 @@ for (let i = 0; i < seeds.length; i += 2) {
     const humidity = linkItem(temperature, itemMappings.temperature);
     const location = linkItem(humidity, itemMappings.humidity);
 
-    resultTable[seed] = location;
     lowestLocation = Math.min(lowestLocation, location);
   }
 }
