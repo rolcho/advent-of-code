@@ -6,3 +6,4 @@ node_modules
 *.pdb
 *.userprefs
 *.vscode/
+*.lockb
