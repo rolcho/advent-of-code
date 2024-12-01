@@ -1,17 +1,21 @@
-import { log } from "console";
-import { readFileSync } from "fs";
+import { log } from "node:console";
+import { readFileSync } from "node:fs";
 
 const input = readFileSync("./input.txt", "utf8").trim();
 const lines = input.split("\n");
-const left: number[] = [];
-const right: number[] = [];
+const left = new Array<number>(lines.length);
+const right = new Array<number>(lines.length);
 let distance = 0;
 
-lines.forEach((line) => {
+while (distance < lines.length) {
+  const line = lines[distance];
   const [leftNumber, rightNumber] = line.split("  ").map(Number);
-  left.push(leftNumber);
-  right.push(rightNumber);
-});
+  left[distance] = leftNumber;
+  right[distance] = rightNumber;
+  distance++;
+}
+
+distance = 0;
 
 left.sort((a, b) => a - b);
 right.sort((a, b) => a - b);
