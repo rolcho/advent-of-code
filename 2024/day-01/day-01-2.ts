@@ -8,12 +8,12 @@ const frequencyMap: { [key: number]: number } = {};
 
 lines.forEach((line) => {
   const [_, right] = line.split("  ").map(Number);
-  frequencyMap[right] = frequencyMap[right] + 1 || 1;
+  frequencyMap[right] = (frequencyMap[right] ?? 0) + 1;
 });
 
 lines.forEach((line) => {
   const [left] = line.split("  ").map(Number);
-  similarity += left * (frequencyMap[left] || 0);
+  similarity += left * (frequencyMap[left] ?? 0);
 });
 
 log({ similarity });
