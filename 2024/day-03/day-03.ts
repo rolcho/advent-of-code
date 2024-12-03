@@ -6,12 +6,21 @@ let mulIndex = 0;
 let numOne: number[] = [];
 let numTwo: number[] = [];
 let sum = 0;
+let isMultiplying = true;
 
 for (let i = 0; i < input.length; i++) {
+  if (input.substring(i, i + 4) === "do()") {
+    isMultiplying = true;
+  }
+
+  if (input.substring(i, i + 7) === "don't()") {
+    isMultiplying = false;
+  }
+
   const currentNumber = Number.parseInt(input[i]);
   switch (mulIndex) {
     case 0:
-      if (input[i] === "m") {
+      if (input[i] === "m" && isMultiplying) {
         mulIndex++;
       } else {
         mulIndex = 0;
