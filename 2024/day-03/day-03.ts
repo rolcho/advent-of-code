@@ -17,6 +17,7 @@ for (let i = 0; i < input.length; i++) {
     isMultiplying = false;
   }
 
+  //TODO: Need to refactor !!! while and splice() offset
   const currentNumber = Number.parseInt(input[i]);
   switch (mulIndex) {
     case 0:
