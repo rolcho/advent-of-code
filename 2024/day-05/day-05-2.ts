@@ -1,22 +1,25 @@
 type Rule = [number, number];
 
-async function main() {
+async function getFileContent(
+  contentType: "example" | "input"
+): Promise<string> {
   let fileContent = "";
   try {
-    const file = Bun.file(`${__dirname}/input.txt`);
-    fileContent = await file.text();
+    const input = Bun.file(`${__dirname}/${contentType}.txt`);
+    fileContent = (await input.text()).trim();
   } catch (error) {
     console.error(error);
-    return;
   }
-  const input = fileContent.trim();
+  return fileContent;
+}
 
+async function main() {
+  const input = await getFileContent("input");
   const [raw_rules, updates] = input.split("\n\n");
-
   const rules: Rule[] = fillRules(raw_rules);
   const updatesList: number[][] = fillUpdateList(updates);
   const updateSum = sumUpdates(updatesList, rules);
-  console.log({ updateSum });
+  console.log({ code: updateSum });
 }
 
 function sumUpdates(updatesList: number[][], rules: Rule[]): number {
