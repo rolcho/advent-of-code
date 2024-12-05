@@ -1,16 +1,22 @@
-import { log } from "node:console";
-import { readFileSync } from "node:fs";
-
 type Rule = [number, number];
 
-function main() {
-  const input = readFileSync("./input.txt", "utf8").trim();
+async function main() {
+  let fileContent = "";
+  try {
+    const file = Bun.file(`${__dirname}/input.txt`);
+    fileContent = await file.text();
+  } catch (error) {
+    console.error(error);
+    return;
+  }
+  const input = fileContent.trim();
+
   const [raw_rules, updates] = input.split("\n\n");
 
   const rules: Rule[] = fillRules(raw_rules);
   const updatesList: number[][] = fillUpdateList(updates);
   const updateSum = sumUpdates(updatesList, rules);
-  log({ updateSum });
+  console.log({ updateSum });
 }
 
 function sumUpdates(updatesList: number[][], rules: Rule[]): number {
@@ -35,12 +41,12 @@ function checkUpdate(updates: number[], rules: Rule[]): number {
 
 function correctUpdate(updates: number[], rules: Rule[]): number[] {
   const myRules: Rule[] = rules.filter(
-    ([current, next]) => updates.includes(current) && updates.includes(next),
+    ([current, next]) => updates.includes(current) && updates.includes(next)
   );
 
-  const occurance = new Map<number, number>();
+  const occurrence = new Map<number, number>();
   for (const [_, next] of myRules) {
-    occurance.set(next, (occurance.get(next) ?? 0) + 1);
+    occurrence.set(next, (occurrence.get(next) ?? 0) + 1);
   }
 
   const fixedUpdate: number[] = [];
@@ -49,7 +55,7 @@ function correctUpdate(updates: number[], rules: Rule[]): number[] {
     const available = updates.find(
       (element) =>
         !fixedUpdate.includes(element) &&
-        (!occurance.has(element) || occurance.get(element) === 0),
+        (!occurrence.has(element) || occurrence.get(element) === 0)
     );
     if (available === undefined) return [];
 
@@ -57,7 +63,7 @@ function correctUpdate(updates: number[], rules: Rule[]): number[] {
 
     for (const [current, next] of myRules) {
       if (current === available) {
-        occurance.set(next, (occurance.get(next) ?? 0) - 1);
+        occurrence.set(next, (occurrence.get(next) ?? 0) - 1);
       }
     }
   }
