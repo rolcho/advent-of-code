@@ -39,28 +39,29 @@ function printMap(s: string) {
 function getStartingPositionFrom(s: string): number {
   return s.indexOf("^");
 }
-function getNextPositionData(from: number, d: string): string {
-  let dataAtPosition = "";
+async function getNextPositionData(from: number, d: string): Promise<string> {
+  let position = from;
   switch (d) {
     case "^":
-      if (from - width > 0) dataAtPosition = data[from - width];
+      if (from - width > 0) position = from - width;
       break;
     case ">":
       if (Math.floor(from / width) === Math.floor((from + 1) / width))
-        dataAtPosition = data[from + 1];
+        position = from + 1;
       break;
     case "v":
-      if (from + width < data.length) dataAtPosition = data[from + width];
+      if (from + width < data.length) position = from + width;
       break;
     case "<":
       if (Math.floor(from / width) === Math.floor((from - 1) / width))
-        dataAtPosition = data[from - 1];
+        position = from - 1;
       break;
   }
+  const dataAtPosition = data[position];
 
   return dataAtPosition;
 }
-function moveToNextPosition(from: number, d: string): number {
+async function moveToNextPosition(from: number, d: string): Promise<number> {
   let nextPosition = from;
 
   switch (d) {
@@ -87,35 +88,59 @@ function moveToNextPosition(from: number, d: string): number {
         Math.floor((nextPosition - 1) / width)
       )
         nextPosition--;
-      else nextPosition - 1;
+      else nextPosition = -1;
       break;
   }
   return nextPosition;
 }
-function moveData(from: number, d: string): [number, string] {
+async function moveData(from: number, d: string): Promise<[number, string]> {
   let currentD = d;
   let currentP = from;
-  const nextPositionData = getNextPositionData(from, d);
-  if (nextPositionData === "#") currentD = getRotatedDirectionFor(d);
-  currentP = moveToNextPosition(from, currentD);
+  const nextPositionData = await getNextPositionData(from, d);
+  if (nextPositionData === "#" || nextPositionData === "O")
+    currentD = await getRotatedDirectionFor(d);
+  currentP = await moveToNextPosition(from, currentD);
+  if (nextPositionData === d && currentP >= 0) {
+    // printMap(data);
+    // console.log({ from, currentP, currentD, nextPositionData });
+    // await waitForSeconds(5);
+    return [-11, currentD];
+  }
   return [currentP, currentD];
 }
 
 export async function main() {
   const fileInput = (await getFileContent("input")).split("\n");
+  let loopCount = 0;
   width = fileInput[0].length ?? 0;
   height = fileInput.length ?? 0;
   data = fileInput.join("");
   let d = "^";
-  let position = getStartingPositionFrom(data);
-  while (position !== -1) {
-    [position, d] = moveData(position, d);
-    if (position !== -1) {
-      data = data.slice(0, position) + d + data.slice(position + 1);
+  for (let i = 0; i < data.length; i++) {
+    data = `${data.slice(0, i)}O${data.slice(i + 1)}`;
+    let position = getStartingPositionFrom(data);
+    console.log(`${data.length}/${i} loops: ${loopCount}`);
+
+    while (position >= 0) {
+      [position, d] = await moveData(position, d);
+      if (position >= 0) {
+        data = data.slice(0, position) + d + data.slice(position + 1);
+      }
+      if (position === -11) {
+        loopCount++;
+        break;
+      }
     }
+    data = fileInput.join("");
+    d = "^";
   }
-  const steps = data.split("").filter((d) => directions.includes(d)).length;
-  console.log(steps);
+
+  // for (let i = 0; i < loops.length; i++) {
+  //   printMap(loops[i]);
+  //   console.log({ i });
+  //   await waitForSeconds(1);
+  // }
+  console.log({ loopCount });
 }
 
 main();
