@@ -20,22 +20,57 @@ function fillGrid(grid: string[][]): ItemList {
       const item = grid[y][x];
       if (item !== ".") {
         if (!items.has(item)) items.set(item, []);
-        items.get(item)?.push({ x, y });
+        const currentItem = items.get(item);
+        if (currentItem !== undefined) currentItem.push({ x, y });
       }
     }
   }
   return items;
 }
+function isOnGrid(coordinate: Coordinate, grid: string[][]): boolean {
+  return (
+    coordinate.x > -1 &&
+    coordinate.y > -1 &&
+    coordinate.x < grid[0].length &&
+    coordinate.y < grid.length
+  );
+}
+
 export async function main() {
-  const fileContent = await getFileContent("example");
+  const antinodeCollector: string[] = [];
+  const antinodes: string[] = [];
+  const fileContent = await getFileContent("input");
   const grid = fileContent.split("\n").map((line) => line.split(""));
   const items = fillGrid(grid);
-  for (const [key, coordinates] of items) {
-    console.log(`${key}:`);
-    let coordinateString = "";
-    for (const coordinate of coordinates)
-      coordinateString += `${coordinate.x}:${coordinate.y} `;
-    console.log(coordinateString);
+  for (const [_, coordinates] of items) {
+    for (let i = 0; i < coordinates.length - 1; i++) {
+      for (let j = i + 1; j < coordinates.length; j++) {
+        const coordinateCurrent = coordinates[i];
+        const nextCoordinate = coordinates[j];
+        const shiftX = nextCoordinate.x - coordinateCurrent.x;
+        const shiftY = nextCoordinate.y - coordinateCurrent.y;
+
+        const shiftedCurrent = {
+          x: coordinateCurrent.x - shiftX,
+          y: coordinateCurrent.y - shiftY,
+        };
+
+        if (isOnGrid(shiftedCurrent, grid))
+          antinodes.push(`${shiftedCurrent.x}:${shiftedCurrent.y}`);
+
+        const shiftedNext = {
+          x: nextCoordinate.x + shiftX,
+          y: nextCoordinate.y + shiftY,
+        };
+        if (isOnGrid(shiftedNext, grid))
+          antinodes.push(`${shiftedNext.x}:${shiftedNext.y}`);
+      }
+    }
   }
+  const antinodesSet = new Set(antinodes);
+  for (const antinode of antinodesSet) {
+    if (!antinodeCollector.includes(antinode)) antinodeCollector.push(antinode);
+  }
+  console.log(antinodeCollector.length);
 }
 main();
