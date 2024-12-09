@@ -1,6 +1,4 @@
-async function getFileContent(
-  contentType: "example" | "input"
-): Promise<string> {
+async function loadFile(contentType: "example" | "input"): Promise<string> {
   let fileContent = "";
   try {
     const input = Bun.file(`${__dirname}/${contentType}.txt`);
@@ -11,23 +9,23 @@ async function getFileContent(
   return fileContent;
 }
 type Coordinate = { x: number; y: number };
-type ItemList = Map<string, Coordinate[]>;
+type ItemCoordinateList = Map<string, Coordinate[]>;
 
-function fillGrid(grid: string[][]): ItemList {
-  const items: ItemList = new Map();
+function createItemCoordinateList(grid: string[][]): ItemCoordinateList {
+  const itemCoordinateList: ItemCoordinateList = new Map();
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[0].length; x++) {
       const item = grid[y][x];
       if (item !== ".") {
-        if (!items.has(item)) items.set(item, []);
-        const currentItem = items.get(item);
+        if (!itemCoordinateList.has(item)) itemCoordinateList.set(item, []);
+        const currentItem = itemCoordinateList.get(item);
         if (currentItem !== undefined) currentItem.push({ x, y });
       }
     }
   }
-  return items;
+  return itemCoordinateList;
 }
-function isOnGrid(coordinate: Coordinate, grid: string[][]): boolean {
+function isCoordinateOnGrid(coordinate: Coordinate, grid: string[][]): boolean {
   return (
     coordinate.x > -1 &&
     coordinate.y > -1 &&
@@ -39,10 +37,10 @@ function isOnGrid(coordinate: Coordinate, grid: string[][]): boolean {
 export async function main() {
   const antinodeCollector: string[] = [];
   const antinodes: string[] = [];
-  const fileContent = await getFileContent("input");
+  const fileContent = await loadFile("input");
   const grid = fileContent.split("\n").map((line) => line.split(""));
-  const items = fillGrid(grid);
-  for (const [_, coordinates] of items) {
+  const itemCoordinateList = createItemCoordinateList(grid);
+  for (const [_, coordinates] of itemCoordinateList) {
     for (let i = 0; i < coordinates.length - 1; i++) {
       for (let j = i + 1; j < coordinates.length; j++) {
         let shiftedCurrent = coordinates[i];
@@ -50,7 +48,7 @@ export async function main() {
         const shiftX = shiftedNext.x - shiftedCurrent.x;
         const shiftY = shiftedNext.y - shiftedCurrent.y;
 
-        while (isOnGrid(shiftedCurrent, grid)) {
+        while (isCoordinateOnGrid(shiftedCurrent, grid)) {
           antinodes.push(`${shiftedCurrent.x}:${shiftedCurrent.y}`);
           shiftedCurrent = {
             x: shiftedCurrent.x - shiftX,
@@ -58,7 +56,7 @@ export async function main() {
           };
         }
 
-        while (isOnGrid(shiftedNext, grid)) {
+        while (isCoordinateOnGrid(shiftedNext, grid)) {
           antinodes.push(`${shiftedNext.x}:${shiftedNext.y}`);
           shiftedNext = {
             x: shiftedNext.x + shiftX,
