@@ -45,25 +45,26 @@ export async function main() {
   for (const [_, coordinates] of items) {
     for (let i = 0; i < coordinates.length - 1; i++) {
       for (let j = i + 1; j < coordinates.length; j++) {
-        const coordinateCurrent = coordinates[i];
-        const nextCoordinate = coordinates[j];
-        const shiftX = nextCoordinate.x - coordinateCurrent.x;
-        const shiftY = nextCoordinate.y - coordinateCurrent.y;
+        let shiftedCurrent = coordinates[i];
+        let shiftedNext = coordinates[j];
+        const shiftX = shiftedNext.x - shiftedCurrent.x;
+        const shiftY = shiftedNext.y - shiftedCurrent.y;
 
-        const shiftedCurrent = {
-          x: coordinateCurrent.x - shiftX,
-          y: coordinateCurrent.y - shiftY,
-        };
-
-        if (isOnGrid(shiftedCurrent, grid))
+        while (isOnGrid(shiftedCurrent, grid)) {
           antinodes.push(`${shiftedCurrent.x}:${shiftedCurrent.y}`);
+          shiftedCurrent = {
+            x: shiftedCurrent.x - shiftX,
+            y: shiftedCurrent.y - shiftY,
+          };
+        }
 
-        const shiftedNext = {
-          x: nextCoordinate.x + shiftX,
-          y: nextCoordinate.y + shiftY,
-        };
-        if (isOnGrid(shiftedNext, grid))
+        while (isOnGrid(shiftedNext, grid)) {
           antinodes.push(`${shiftedNext.x}:${shiftedNext.y}`);
+          shiftedNext = {
+            x: shiftedNext.x + shiftX,
+            y: shiftedNext.y + shiftY,
+          };
+        }
       }
     }
   }
