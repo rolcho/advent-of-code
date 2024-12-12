@@ -12,30 +12,23 @@ const arrayToString = <T>(items: T[]): string => {
   return `[${items.map((i) => JSON.stringify(i)).join(", ")}]`;
 };
 
-const relationMap: { [key: number]: number[] } = {};
-
 for (let i = 0; i < 25; i++) {
   const newNums: number[] = [];
   for (const num of nums) {
-    if (relationMap[num] !== undefined) {
-      newNums.push(...relationMap[num]);
-      continue;
-    }
     if (num === 0) {
       newNums.push(1);
-      relationMap[num] = [1];
+
       continue;
     }
-    if (String(num).length % 2 === 0) {
-      const split = 10 ** (String(num).length / 2);
-      const a = Math.floor(num / split);
-      const b = num % split;
+    if (num.toString().length % 2 === 0) {
+      const index = num.toString().length / 2;
+      const a = Number(num.toString().slice(0, index));
+      const b = Number(num.toString().slice(index));
       newNums.push(a, b);
-      relationMap[num] = [a, b];
+
       continue;
     }
     newNums.push(num * 2024);
-    relationMap[num] = [num * 2024];
   }
   nums = [...newNums];
 }

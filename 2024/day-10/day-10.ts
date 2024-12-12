@@ -20,7 +20,7 @@ async function getFileContent(
 
 async function main() {
   const data = await getFileContent("input");
-  let elevations: ElevationNode[] = data
+  const elevations: ElevationNode[] = data
     .split("\n")
     .map((line, y) =>
       line
