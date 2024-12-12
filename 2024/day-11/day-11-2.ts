@@ -12,7 +12,7 @@ const nums = input.split(" ").map(Number);
 const cache = new Map<string, number>();
 
 function getNumbersFrom(n: number, l: number, r: number): number {
-  const key = `${n},${l},${r}`;
+  const key = `${n},${l}`;
   if (cache.has(key)) return cache.get(key)!;
 
   let result: number;
