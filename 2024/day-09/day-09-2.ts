@@ -1,3 +1,8 @@
+function waitForSeconds(seconds: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, seconds * 1000);
+  });
+}
 async function getFileContent(
   contentType: "example" | "input"
 ): Promise<string> {
@@ -31,6 +36,7 @@ async function getBlocks(
 type BlockInfo = {
   size: number;
   content: number | undefined;
+  moved: boolean;
 };
 
 async function main() {
@@ -53,12 +59,14 @@ async function main() {
           blockMap.set(chunkIndex, {
             size: chunkSize,
             content: undefined,
+            moved: false,
           });
           break;
         default:
           blockMap.set(chunkIndex, {
             size: chunkSize,
             content: chunkContent,
+            moved: false,
           });
           break;
       }
@@ -66,50 +74,65 @@ async function main() {
     }
   }
 
-  let nextFileIndex: number = seekNextFile(blocks.length - 1, blockMap);
-  let firstFreeSpaceIndex = seekFirstFreeSpace(blocks.length, blockMap);
-  const before = print(blockMap, blocks.length);
-  Bun.write("before.txt", before);
+  for (let cnt = 0; cnt < 10; cnt++) {
+    let nextFileIndex: number = seekNextFile(blocks.length - 1, blockMap);
+    let firstFreeSpaceIndex = seekFirstFreeSpace(blocks.length, blockMap);
+    console.clear();
+    const before = print(blockMap, blocks.length);
 
-  while (nextFileIndex >= 0) {
-    blockMap = mergeFreeSpaces(blockMap, blocks.length);
-    const nextFile = blockMap.get(nextFileIndex);
-    if (!nextFile) break;
-    firstFreeSpaceIndex = seekFirstFreeSpace(nextFile.size, blockMap);
-    const firstFreeSpace = blockMap.get(firstFreeSpaceIndex);
+    Bun.write(
+      `step-${cnt}.txt`,
+      `blocks: ${blocks.length} size: ${before.length} sum: ${sumBlocks(
+        blockMap
+      )}\nblockMap: ${before}`
+    );
 
-    if (
-      !firstFreeSpace ||
-      firstFreeSpaceIndex === -1 ||
-      firstFreeSpaceIndex > nextFileIndex
-    ) {
-      nextFileIndex = seekNextFile(nextFileIndex, blockMap);
-      continue;
-    }
+    while (nextFileIndex >= 0) {
+      blockMap = mergeFreeSpaces(blockMap, blocks.length);
+      // await waitForSeconds(0.01);
+      // console.clear();
+      // print(blockMap, blocks.length);
+      const nextFile = blockMap.get(nextFileIndex);
+      if (!nextFile) break;
+      firstFreeSpaceIndex = seekFirstFreeSpace(nextFile.size, blockMap);
+      const firstFreeSpace = blockMap.get(firstFreeSpaceIndex);
 
-    blockMap.delete(firstFreeSpaceIndex);
+      if (!firstFreeSpace || firstFreeSpaceIndex === -1 || nextFile.moved) {
+        nextFileIndex = seekNextFile(nextFileIndex, blockMap);
+        continue;
+      }
 
-    if (firstFreeSpace.size - nextFile.size > 0)
-      blockMap.set(firstFreeSpaceIndex + nextFile.size, {
-        size: firstFreeSpace.size - nextFile.size,
-        content: undefined,
+      blockMap.delete(firstFreeSpaceIndex);
+
+      if (firstFreeSpace.size - nextFile.size > 0)
+        blockMap.set(firstFreeSpaceIndex + nextFile.size, {
+          size: firstFreeSpace.size - nextFile.size,
+          content: undefined,
+          moved: true,
+        });
+
+      blockMap.set(firstFreeSpaceIndex, {
+        size: nextFile.size,
+        content: nextFile.content,
+        moved: true,
       });
 
-    blockMap.set(firstFreeSpaceIndex, {
-      size: nextFile.size,
-      content: nextFile.content,
-    });
+      blockMap.set(nextFileIndex, {
+        size: nextFile.size,
+        content: undefined,
+        moved: true,
+      });
 
-    blockMap.set(nextFileIndex, {
-      size: nextFile.size,
-      content: undefined,
-    });
-
-    nextFileIndex = seekNextFile(nextFileIndex, blockMap);
+      nextFileIndex = seekNextFile(nextFileIndex, blockMap);
+    }
   }
-
   const after = print(blockMap, blocks.length);
-  Bun.write("after.txt", after);
+  Bun.write(
+    "after.txt",
+    `blocks: ${blocks.length} size: ${after.length} sum: ${sumBlocks(
+      blockMap
+    )}\nblockMap: ${after}`
+  );
   console.log(sumBlocks(blockMap));
 }
 main();
@@ -117,9 +140,6 @@ const seekNextFile = (
   startIndex: number,
   blockMap: Map<number, BlockInfo>
 ): number => {
-  if (startIndex === 12) {
-    console.log("watch out!");
-  }
   for (let i = startIndex - 1; i >= 0; i--) {
     const blockInfo = blockMap.get(i);
 
@@ -158,6 +178,7 @@ function mergeFreeSpaces(
         blockMap.set(i, {
           size: blockInfo.size + nextBlockInfo.size,
           content: undefined,
+          moved: false,
         });
         blockMap.delete(blockInfo.size + i);
       }
@@ -182,9 +203,9 @@ function print(blockMap: Map<number, BlockInfo>, size: number): string {
     const blockInfo = blockMap.get(i);
     if (blockInfo) {
       const content = new Array(blockInfo.size)
-        .fill(blockInfo.content ?? ".")
+        .fill(blockInfo.content ? "X" : ".")
         .join("|");
-      str += `|>${content}<| `;
+      str += `${content}|`;
     }
   }
   console.log(str);
