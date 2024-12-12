@@ -37,12 +37,6 @@ async function main() {
   let trailHeadCount = 0;
   for (const start of starts) {
     trailHeadCount += connectedWith(start, 0, elevations);
-    elevations = elevations.map((n) => ({
-      x: n.x,
-      y: n.y,
-      elevation: n.elevation,
-      visited: false,
-    }));
   }
   const trailHeads = elevations.filter((n) => n.visited);
   console.log({ trailHeadCount });
@@ -63,7 +57,6 @@ function connectedWith(
 ): number {
   if (e === 9) {
     const vNode = eNodes.find((n) => n.x === cNode.x && n.y === cNode.y);
-    if (vNode) vNode.visited = true;
     return 1;
   }
 
@@ -82,8 +75,7 @@ function connectedWith(
       visited: n.visited,
     };
     return ns.some(
-      (n) =>
-        n.x === c.x && n.y === c.y && n.elevation === c.elevation && !n.visited,
+      (n) => n.x === c.x && n.y === c.y && n.elevation === c.elevation,
     )
       ? c
       : undefined;
