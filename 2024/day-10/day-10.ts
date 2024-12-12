@@ -28,7 +28,15 @@ async function main() {
     )
     .flat(2)
     .filter((n) => !Number.isNaN(n.elevation));
-  const start = elevations.filter((n) => n.elevation === 0);
-  console.log({ start });
+  const starts = elevations.filter((n) => n.elevation === 0);
+
+  let countFullRoute = 0;
+  for (const start of starts) {
+    countFullRoute += isFullRoute(start) ? 1 : 0;
+  }
+
+  console.log({ starts });
 }
 main();
+
+function isFullRoute(startNode: ElevationNode): boolean {}
