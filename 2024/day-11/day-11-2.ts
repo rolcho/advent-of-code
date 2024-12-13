@@ -13,7 +13,7 @@ const cache = new Map<string, number>();
 
 function getNumbersFrom(n: number, l: number, r: number): number {
   const key = `${n},${l}`;
-  if (cache.has(key)) return cache.get(key)!;
+  if (cache.has(key)) return cache.get(key) ?? 0;
 
   let result: number;
   if (l === 0) {
