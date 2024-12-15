@@ -17,7 +17,6 @@ async function getFileContent(
 }
 
 type PlotCoordinates = [number, number];
-type PlantSizeAndPerimeter = [number, number];
 
 function findPlants(coordinates: PlotCoordinates[]): PlotCoordinates[][] {
   const groups: PlotCoordinates[][] = [];
@@ -56,7 +55,6 @@ async function main() {
   const fileContent = await getFileContent("input");
   const plotMatrix = fileContent.split("\n").map((l) => l.split(""));
   const plots: { [key: string]: PlotCoordinates[] } = {};
-  const plantsData: PlantSizeAndPerimeter[] = [];
 
   for (let row = 0; row < plotMatrix.length; row++) {
     for (let column = 0; column < plotMatrix[0].length; column++) {
